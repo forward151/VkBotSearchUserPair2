@@ -82,14 +82,22 @@ class Vk:
                     request = event.text
                     user_id = event.user_id
                     result = find_user(user_id)
-                    print(result)
                     user_data = check_user_data(user_id)
                     if not result:
+                        print('new user')
                         self.write_text_message(event.user_id, f'Привет 👋\nЯ бот, который находит похожих людей')
                         insert_user(user_id)
 
                         self.write_text_message(event.user_id, f'Загрузка данных из профиля для поиска...')
                         if not user_data or '' in list(user_data.values()):
+                            if user_data['age'] != '':
+                                change_user(user_id, 1, 'age', user_data['age'])
+                            if user_data['sex'] != '':
+                                change_user(user_id, 1, 'sex', user_data['sex'])
+                            if user_data['city'] != '':
+                                change_user(user_id, 1, 'town', user_data['city'])
+                            if user_data['stat'] != '':
+                                change_user(user_id, 1, 'stat', user_data['stat'])
                             self.write_text_message(event.user_id,
                                                     f'Так как у тебя в профиле находятся не все данные,\n необходимые для поиска, или профиль закрытый,\n то тебе надо пройти небольшой опрос, для того, чтобы я смог осуществить корректный поиск')
                             self.write_text_message(event.user_id, 'Для продолжения введите любой символ')
@@ -115,6 +123,7 @@ class Vk:
                                 self.write_text_message(event.user_id, 'Для следующего поиска введите любой символ')
 
                     elif result == 2:
+                        print('old user with all data')
                         self.write_text_message(event.user_id, f'Все данные успешно загружены ✔')
                         self.write_text_message(event.user_id, f'Запускаю поиск...')
                         name, surname, photos, users_id, links_list = self.search(user_id)
@@ -130,9 +139,10 @@ class Vk:
                             self.write_text_message(event.user_id, 'Для следующего поиска введите любой символ')
 
                     elif result == 1:
-                        result = find_user2(user_id)
-                        print(result)
-                        if result == 1:
+                        print('not enough data')
+                        resultx = find_user2(user_id)
+                        print(resultx)
+                        if resultx == 1:
                             if not user_data or user_data['age'] == '':
                                 self.write_text_message(event.user_id, f'Сколько тебе лет?')
                                 change_status2(user_id, 2)
@@ -143,12 +153,13 @@ class Vk:
                                 change_status2(user_id, 4)
                                 self.write_text_message(event.user_id, f'В каком городе ты живешь?')
                             elif not user_data or user_data['stat'] == '':
-                                change_status2(user_id, 5)
+                                change_status2(user_id, 5)s
                                 self.write_text_message(event.user_id,
                                                         f'Какое у тебя семейное положение?\n(1 - не в браке\n2 - встречаешься\n3 - помолвлен\n4 - в браке\n5 - всё сложно\n6 - в активном поиске\n7 - влюблен\n8 - в гражданском браке)')
+                            else:
+                                change_status2(user_id, 6)
 
-
-                        elif result == 2:
+                        elif resultx == 2:
                             try:
                                 age = int(request)
                                 change_user(user_id, 1, 'age', age)
@@ -162,11 +173,12 @@ class Vk:
                                 elif not user_data or user_data['stat'] == '':
                                     change_status2(user_id, 5)
                                     self.write_text_message(event.user_id, f'Какое у тебя семейное положение?\n(1 - не в браке\n2 - встречаешься\n3 - помолвлен\n4 - в браке\n5 - всё сложно\n6 - в активном поиске\n7 - влюблен\n8 - в гражданском браке)')
-
+                                else:
+                                    change_status2(user_id, 6)
                             except ValueError:
-                                self.write_text_message(event.user_id, f'Напиши целое число')
+                                print('this 1')
 
-                        elif result == 3:
+                        elif resultx == 3:
                             if request == '1' or request == '2':
                                 sex = int(request)
                                 change_user(user_id, 1, 'sex', sex)
@@ -177,24 +189,30 @@ class Vk:
                                 elif not user_data or user_data['stat'] == '':
                                     change_status2(user_id, 5)
                                     self.write_text_message(event.user_id, f'Какое у тебя семейное положение?\n(1 - не в браке\n2 - встречаешься\n3 - помолвлен\n4 - в браке\n5 - всё сложно\n6 - в активном поиске\n7 - влюблен\n8 - в гражданском браке)')
+                                else:
+                                    change_status2(user_id, 6)
+
                             else:
                                 self.write_text_message(event.user_id, f'Введи 1 или 2')
 
-                        elif result == 4:
+                        elif resultx == 4:
                             town = request
                             change_user(user_id, 1, 'town', town)
                             self.town = town
                             if not user_data or user_data['stat'] == '':
                                 change_status2(user_id, 5)
                                 self.write_text_message(event.user_id, f'Какое у тебя семейное положение?\n(1 - не в браке\n2 - встречаешься\n3 - помолвлен\n4 - в браке\n5 - всё сложно\n6 - в активном поиске\n7 - влюблен\n8 - в гражданском браке)')
+                            else:
+                                change_status2(user_id, 6)
 
-                        elif result == 5:
+                        elif resultx == 5:
                             try:
                                 request = int(request)
                                 if request >= 1 and request <= 8:
                                     stat = request
                                     change_user(user_id, 1, 'stat', stat)
                                     self.stat = stat
+                                    self.write_text_message(event.user_id, f'Все данные загружены, запускаю поиск')
                                     self.write_text_message(event.user_id, f'Итак, результаты:')
                                     name, surname, photos, users_id, links_list = self.search(user_id)
                                     change_user(user_id, 2, '', '')
@@ -208,9 +226,10 @@ class Vk:
                                 else:
                                     self.write_text_message(event.user_id, f'Введи цифру от 1 до 8')
                             except ValueError:
-                                self.write_text_message(event.user_id, f'Напиши целое число')
-
-                        else:
+                                print('this 2')
+                        resultx = find_user2(user_id)
+                        if resultx == 6:
+                            self.write_text_message(event.user_id, f'Все данные загружены, запускаю поиск')
                             name, surname, photos, users_id, links_list = self.search(user_id)
                             change_user(user_id, 2, '', '')
                             if name is None:
